@@ -5,7 +5,25 @@
 ![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-blue.svg)
 ![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20MVVM-red.svg)
 
-## 1. Descripción General
+## 1. Instrucciones de Instalación
+1. **Requisitos:**
+    - Android Studio Ladybug o superior.
+    - JDK 17.
+    - SDK de Android 34+.
+
+2. **Clonación y Ejecución:**
+   ```bash
+   git clone https://github.com/brandonroldan/RickAndMortyApp.git
+   cd RickAndMortyApp
+   ```
+3. Abrir el proyecto en Android Studio.
+4. Sincronizar Gradle.
+5. Ejecutar en un emulador o dispositivo físico.
+
+---
+
+
+## 2. Descripción General
 **Rick & Morty App** es una aplicación de Android moderna diseñada para demostrar la implementación de una arquitectura robusta, escalable y mantenible. La aplicación consume la API pública de Rick and Morty para listar personajes, ver sus detalles y gestionar una lista de favoritos persistente localmente.
 
 ### Problema que resuelve
@@ -23,7 +41,7 @@ El proyecto sirve como una implementación de referencia para aplicaciones que r
 - **Paginación:**  `Paging 3` para el listado infinito de personajes.
 ---
 
-## 2. Arquitectura del Proyecto
+## 3. Arquitectura del Proyecto
 Se ha implementado una arquitectura basada en **Clean Architecture** junto con el patrón de diseño **MVVM (Model-View-ViewModel)**.
 
 ### Capas del Proyecto
@@ -39,7 +57,7 @@ Se ha implementado una arquitectura basada en **Clean Architecture** junto con e
 
 ---
 
-## 3. Decisiones Técnicas y Justificación
+## 4. Decisiones Técnicas y Justificación
 
 | Tecnología | Justificación | Alternativas |
 | :--- | :--- | :--- |
@@ -51,7 +69,7 @@ Se ha implementado una arquitectura basada en **Clean Architecture** junto con e
 
 ---
 
-## 4. Estructura de Carpetas
+## 5. Estructura de Carpetas
 ```text
 com.brs.rickyandmorthy/
 ├── core/                # Utilidades compartidas y constantes
@@ -74,22 +92,7 @@ com.brs.rickyandmorthy/
 
 ---
 
-## 5. Instrucciones de Instalación
-1. **Requisitos:**
-   - Android Studio Ladybug o superior.
-   - JDK 17.
-   - SDK de Android 34+.
 
-2. **Clonación y Ejecución:**
-   ```bash
-   git clone https://github.com/brandonroldan/RickAndMortyApp.git
-   cd RickAndMortyApp
-   ```
-3. Abrir el proyecto en Android Studio.
-4. Sincronizar Gradle.
-5. Ejecutar en un emulador o dispositivo físico.
-
----
 
 ## 6. API Utilizada
 Se utiliza la [Rick and Morty API](https://rickandmortyapi.com/).
@@ -101,17 +104,11 @@ Se utiliza la [Rick and Morty API](https://rickandmortyapi.com/).
 
 ---
 
-## 7. Mejoras Futuras
-
-- [ ] **Testing:** Aumentar la cobertura de tests unitarios en los UseCases y tests de UI con ComposeTestRule.
-- [ ] **Manejo Offline:** Implementar una estrategia de caché más agresiva para que toda la app funcione sin conexión.
-- [ ] **Animaciones:** Añadir transiciones compartidas entre la lista y el detalle.
 
 ---
 
-## 8. Créditos
+## 7. Créditos
 - **Autor:** Brandon Roldán
 - **Tecnologías:** Kotlin, Compose, Hilt, Room, Retrofit, Coroutines, Flow.
 
 ---
-*Este proyecto fue desarrollado como parte de una prueba técnica para demostrar habilidades en el desarrollo moderno de Android.*
