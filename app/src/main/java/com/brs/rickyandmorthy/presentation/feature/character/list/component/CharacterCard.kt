@@ -114,6 +114,16 @@ fun CharacterCard(
 @Composable
 fun CharacterCardPreview(){
     RickyAndMorthyTheme() {
-
+        CharacterCard(
+            character = CharacterUi(
+                id = 1,
+                name = "Rick Sanchez",
+                status = StatusCharacter.ALIVE,
+                species = "Human",
+                origin = "Earth (C-137)",
+                lastSeen = "Citadel of Ricks",
+                image = ""
+            )
+        )
     }
 }

@@ -42,10 +42,9 @@ fun StatusIndicator(
         StatusCharacter.DEAD -> RedStatus
         StatusCharacter.UNKNOWN -> GrayStatus
     }
-    // Animación infinita
+
     val infiniteTransition = rememberInfiniteTransition()
 
-    // Latido: escala entre 1f y 1.2f
     val pulse by infiniteTransition.animateFloat(
         initialValue = 0.6f,
         targetValue = 1f,
@@ -54,7 +53,6 @@ fun StatusIndicator(
             repeatMode = RepeatMode.Reverse
         )
     )
-    // Color animado si cambia el estado
     val animatedColor by animateColorAsState(targetColor)
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp) ,

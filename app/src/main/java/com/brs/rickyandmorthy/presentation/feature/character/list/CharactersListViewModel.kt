@@ -2,16 +2,23 @@ package com.brs.rickyandmorthy.presentation.feature.character.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.brs.rickyandmorthy.domain.model.CharacterRM
 import com.brs.rickyandmorthy.domain.usecase.AddFavoriteUseCase
 import com.brs.rickyandmorthy.domain.usecase.GetCharactersUseCase
 import com.brs.rickyandmorthy.domain.usecase.IsFavoriteUseCase
 import com.brs.rickyandmorthy.domain.usecase.SearchCharactersUseCase
-import com.brs.rickyandmorthy.presentation.feature.character.list.model.CharacterUi
 import com.brs.rickyandmorthy.presentation.feature.character.list.mapper.toUi
+import com.brs.rickyandmorthy.presentation.feature.character.list.model.CharacterUi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,72 +39,35 @@ open class CharactersListViewModel (
         isFavorite: IsFavoriteUseCase
     ) : this(getCharacters, searchCharacters, addFavorite, isFavorite, false)
 
-    protected val _uiState = MutableStateFlow(CharactersListUiState())
+    private val _uiState = MutableStateFlow(CharactersListUiState())
     val uiState: StateFlow<CharactersListUiState> = _uiState
 
-    init {
-        if (!skipInitialLoad) {
-            loadCharacters()
+    private val _searchQuery = MutableStateFlow("")
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val charactersPagingData: Flow<PagingData<CharacterUi>> = _searchQuery
+        .flatMapLatest { query ->
+            getCharacters(query)
         }
-    }
-    fun loadCharacters(page: Int? = null) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            val result = getCharacters(page)
-
-            result.onSuccess { rmList ->
-                _uiState.update {
-                    it.copy(
-                        characters = rmList.map { rm -> rm.toUi() },
-                        isLoading = false
-                    )
-                }
-            }
-
-            result.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Error desconocido"
-                    )
-                }
-            }
+        .map { pagingData ->
+            pagingData.map { it.toUi() }
         }
-    }
+        .cachedIn(viewModelScope)
 
     fun search(name: String, status: String? = null) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _searchQuery.value = name
+        _uiState.update { it.copy(searchQuery = name) }
+    }
 
-            val result: Result<List<CharacterRM>> =
-                searchCharacters(name, status)
+    fun setQuery(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
 
-            result.onSuccess { rmList ->
-                _uiState.update {
-                    it.copy(
-                        characters = rmList.map { rm -> rm.toUi() },
-                        isLoading = false
-                    )
-                }
-            }
-
-            result.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = error.message ?: "Error desconocido"
-                    )
-                }
-            }
-        }
     }
 
     fun toggleFavorite(characterUi: CharacterUi) {
         viewModelScope.launch {
             val fav = isFavorite(characterUi.id)
             if (!fav) {
-                // Construir domain minimal desde UI (ajustar si CharacterRM requiere más campos)
                 val domain = CharacterRM(
                     id = characterUi.id,
                     name = characterUi.name,
@@ -109,15 +79,7 @@ open class CharactersListViewModel (
                     locationName = characterUi.lastSeen
                 )
                 addFavorite(domain)
-                // opcional: actualizar UI localmente si quieres feedback inmediato
-            } else {
-                // Para eliminar preferi hacerlo desde detalle o favoritos (confirmación)
             }
         }
     }
-
-    fun setQuery(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-    }
-
 }

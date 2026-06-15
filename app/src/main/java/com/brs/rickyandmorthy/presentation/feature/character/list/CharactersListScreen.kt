@@ -1,13 +1,9 @@
 package com.brs.rickyandmorthy.presentation.feature.character.list
 
-
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
@@ -32,25 +26,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.brs.rickyandmorthy.presentation.feature.character.list.component.CharacterCard
-import com.brs.rickyandmorthy.presentation.feature.character.list.component.CharacterShimmerItem
-import com.brs.rickyandmorthy.presentation.feature.character.list.model.CharacterUi
-import com.brs.rickyandmorthy.presentation.feature.character.list.preview.mockCharacters
-import com.brs.rickyandmorthy.ui.theme.RickyAndMorthyTheme
-
-
-
-
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil.compose.rememberAsyncImagePainter
-
+import com.brs.rickyandmorthy.presentation.feature.character.list.model.CharacterUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +45,9 @@ fun CharactersListScreen(
     onNavigateToDetail: (Int) -> Unit,
     onNavigateToFavorites: () -> Unit 
 ) {
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val characters = viewModel.charactersPagingData.collectAsLazyPagingItems()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -87,23 +75,65 @@ fun CharactersListScreen(
                 }
             )
 
-            when {
-                state.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                state.errorMessage != null -> {
-                    Text(text = state.errorMessage ?: "Ocurrió un error", modifier = Modifier.padding(16.dp))
-                }
-                else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(state.characters) { character ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(
+                        count = characters.itemCount,
+                        key = characters.itemKey { it.id }
+                    ) { index ->
+                        val character = characters[index]
+                        if (character != null) {
                             CharacterRow(
                                 character = character,
                                 onClick = { onNavigateToDetail(character.id) },
                                 onFavoriteClick = { viewModel.toggleFavorite(character) }
                             )
+                        }
+                    }
+
+                    // Loading more state
+                    when (val loadState = characters.loadState.append) {
+                        is LoadState.Loading -> {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+                        is LoadState.Error -> {
+                            item {
+                                Text(
+                                    text = loadState.error.message ?: "Error al cargar más",
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+
+                // Initial load state
+                when (val loadState = characters.loadState.refresh) {
+                    is LoadState.Loading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is LoadState.Error -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = loadState.error.message ?: "Ocurrió un error")
+                        }
+                    }
+                    else -> {
+                        if (characters.itemCount == 0 && characters.loadState.append is LoadState.NotLoading) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(text = "No se encontraron personajes")
+                            }
                         }
                     }
                 }
@@ -137,8 +167,6 @@ private fun CharacterRow(
             IconButton(onClick = onFavoriteClick) {
                 Icon(Icons.Default.Favorite, contentDescription = "Agregar a favoritos")
             }
-
         }
     }
 }
-
